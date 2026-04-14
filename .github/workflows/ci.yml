@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-latest
+            configure: >-
+              cmake -S . -B build
+              -DCMAKE_BUILD_TYPE=Release
+              -DVSCPD_PACKAGE_GENERATORS=TGZ\;DEB
+          - name: macOS
+            os: macos-latest
+            configure: >-
+              cmake -S . -B build
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_PREFIX_PATH=${BREW_PREFIXES}
+              -DVSCPD_PACKAGE_GENERATORS=TGZ
+          - name: Windows
+            os: windows-latest
+            configure: >-
+              cmake -S . -B build
+              -G "Visual Studio 17 2022"
+              -A x64
+              -DCMAKE_TOOLCHAIN_FILE=${{ runner.temp }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+              -DVCPKG_TARGET_TRIPLET=x64-windows
+              -DVSCPD_BUILD_MANPAGES=OFF
+              -DVSCPD_PACKAGE_GENERATORS=ZIP
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            curl \
+            libcurl4-openssl-dev \
+            libexpat1-dev \
+            libmosquitto-dev \
+            libssl-dev \
+            libsystemd-dev \
+            pandoc \
+            pkg-config
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install cjson expat mosquitto openssl pandoc
+          echo "BREW_PREFIXES=$(brew --prefix openssl);$(brew --prefix expat);$(brew --prefix mosquitto);$(brew --prefix curl);$(brew --prefix cjson)" >> "$GITHUB_ENV"
+
+      - name: Setup vcpkg
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "${{ runner.temp }}/vcpkg"
+          & "${{ runner.temp }}/vcpkg/bootstrap-vcpkg.bat"
+
+      - name: Configure
+        shell: bash
+        run: ${{ matrix.configure }}
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Package
+        run: cpack --config build/CPackConfig.cmake -C Release
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscpd-${{ matrix.name }}
+          if-no-files-found: error
+          path: |
+            build/*.deb
+            build/*.tar.gz
+            build/*.tgz
+            build/*.zip
+            build/*.exe
