@@ -44,3 +44,5 @@
 
 build/
 *.tgz
+*.tar.gz
+*.deb
