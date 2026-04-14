@@ -7,9 +7,6 @@ on:
       - master
   pull_request:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     name: ${{ matrix.name }}
@@ -44,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
 
@@ -90,11 +87,16 @@ jobs:
         working-directory: ${{ github.workspace }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: vscpd-${{ matrix.name }}
           if-no-files-found: error
           path: |
+            *.deb
+            *.tar.gz
+            *.tgz
+            *.zip
+            *.exe
             build/*.deb
             build/*.tar.gz
             build/*.tgz

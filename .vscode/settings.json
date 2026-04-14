@@ -4,6 +4,8 @@
         "git ls-remote": true,
         "git config": true,
         "git add": true,
-        "git commit": true
+        "git commit": true,
+        "git rev-parse": true,
+        "git ls-tree": true
     }
 }
