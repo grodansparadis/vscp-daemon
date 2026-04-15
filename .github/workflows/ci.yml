@@ -9,6 +9,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  VSCPD_BUILD_NUMBER: ${{ github.run_number }}
 
 jobs:
   build:
@@ -23,6 +24,7 @@ jobs:
             configure: >-
               cmake -S . -B build
               -DCMAKE_BUILD_TYPE=Release
+              -DVSCPD_BUILD_NUMBER=${VSCPD_BUILD_NUMBER}
               -DVSCPD_PACKAGE_GENERATORS=TGZ\;DEB
           - name: macOS
             os: macos-latest
@@ -30,6 +32,7 @@ jobs:
               cmake -S . -B build
               -DCMAKE_BUILD_TYPE=Release
               -DCMAKE_PREFIX_PATH=${BREW_PREFIXES}
+              -DVSCPD_BUILD_NUMBER=${VSCPD_BUILD_NUMBER}
               -DVSCPD_PACKAGE_GENERATORS=TGZ
           - name: Windows
             os: windows-latest
@@ -40,6 +43,7 @@ jobs:
               -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
               -DVCPKG_TARGET_TRIPLET=x64-windows
               -DVSCPD_BUILD_MANPAGES=OFF
+              -DVSCPD_BUILD_NUMBER=${VSCPD_BUILD_NUMBER}
               -DVSCPD_PACKAGE_GENERATORS=ZIP\;NSIS
 
     steps:
