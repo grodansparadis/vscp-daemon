@@ -6,6 +6,7 @@
         "git add": true,
         "git commit": true,
         "git rev-parse": true,
-        "git ls-tree": true
+        "git ls-tree": true,
+        "cmake": true
     }
 }
