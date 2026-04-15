@@ -48,6 +48,8 @@ if(WIN32)
         target_link_libraries(vscpd PRIVATE PThreads4W::PThreads4W_CXXEXC)
     endif()
 
+    target_link_libraries(vscpd PRIVATE netapi32)
+
     if(MSVC)
         target_compile_options(vscpd PRIVATE /utf-8)
     endif()
